@@ -13,7 +13,7 @@ import AVFoundation
 // MARK: - QuizViewController (Functions)
 
 extension QuizViewController {
-  
+    
     // MARK: QuizState
     
     enum QuizState {
@@ -69,7 +69,7 @@ extension QuizViewController {
         // Stops the audio playback
         speechSynth.stopSpeakingAtBoundary(AVSpeechBoundary.Immediate)
     }
-
+    
     // MARK: Setup/Reset
     
     func setupLanguages() {
@@ -109,7 +109,7 @@ extension QuizViewController {
         languageChoices.append(tempCountry)
         
     }
-
+    
     func chooseNewLanguageAndSetupButtons() {
         // 1. Choose the location of the correct answer
         // 2. Choose the language of the correct answer
@@ -142,43 +142,42 @@ extension QuizViewController {
             correctButtonTag = 2
         }
         
-        // use vars button1-3 to assign the text.
-        let randomLanguage = arc4random_uniform(UInt32(self.languageChoices.count))
-        let randomLanguageInt = Int(randomLanguage)
-        let correctCountry = languageChoices[randomLanguageInt]
         
-        let languageTitle = correctCountry.languageName
-        bcpCode = correctCountry.languageCode
-        spokenText = correctCountry.textToSpeak
-        //languageTitle = languageTitle + "CR"
-        let button1Flag = correctCountry.flagName
-        button1.setTitle(languageTitle, forState: UIControlState.Normal)
-        button1.setBackgroundImage(UIImage(named: button1Flag), forState: UIControlState.Normal)
+        let languages = draw3Languages(self.languageChoices)
+        setButtonAttributes(button1, lang: languages[0])
+        setButtonAttributes(button2, lang: languages[1])
+        setButtonAttributes(button3, lang: languages[2])
         
-        var otherChoicesArray = languageChoices
-        otherChoicesArray.removeAtIndex(randomLanguageInt)
-        
-        let secondRandomLanguage = arc4random_uniform(UInt32(otherChoicesArray.count))
-        let secondRandomLanguageInt = Int(secondRandomLanguage)
-        let alternateCountry1 = otherChoicesArray[secondRandomLanguageInt]
-        
-        let secondLanguageTitle = alternateCountry1.languageName
-        button2.setTitle(secondLanguageTitle, forState: UIControlState.Normal)
-        
-        let button2Flag = alternateCountry1.flagName
-        button2.setBackgroundImage(UIImage(named: button2Flag), forState: UIControlState.Normal)
-        
-        otherChoicesArray.removeAtIndex(secondRandomLanguageInt)
-        
-        let thirdRandomLanguage = arc4random_uniform(UInt32(otherChoicesArray.count))
-        let thirdRandomLanguageInt = Int(thirdRandomLanguage)
-        let alternateCountry2 = otherChoicesArray[thirdRandomLanguageInt]
-        
-        let thirdLanguageTitle = alternateCountry2.languageName
-        button3.setTitle(thirdLanguageTitle, forState: UIControlState.Normal)
-        let button3Flag = alternateCountry2.flagName
-        button3.setBackgroundImage(UIImage(named: button3Flag), forState: UIControlState.Normal)
-        otherChoicesArray.removeAtIndex(thirdRandomLanguageInt)
+        //Correct country data
+        bcpCode = languages[0].languageCode
+        spokenText = languages[0].textToSpeak
+    }
+    
+    func setButtonAttributes(button: UIButton, lang: Country){
+        button.setTitle(lang.languageName, forState: UIControlState.Normal)
+        button.setBackgroundImage(UIImage(named:lang.flagName), forState: UIControlState.Normal)
+    }
+    
+    //function for drawing 3 langages from an array
+    func draw3Languages(langs: [Country])-> [Country]{
+        //first drawed country will be the correct one
+        var langArr: [Country] = []
+        var retArr: [Country] = []
+        var randLang = 0
+        for _ in 1...3 {
+            //check if first draw
+            if langArr.count == 0 {
+                langArr = langs
+            }
+            randLang = Int(arc4random_uniform(UInt32(langArr.count)))
+            retArr.append(langArr[randLang])
+            langArr.removeAtIndex(randLang)
+            
+        }
+        return retArr
+        //returned array contains drawed languages
+        //first one is the correct one
+        //this array doesnt contain final order
     }
     
     func resetButtonToState(newState: QuizState) {
@@ -212,7 +211,7 @@ extension QuizViewController {
         chooseNewLanguageAndSetupButtons()
         resetButtonToState(.ReadyToSpeak)
     }
-  
+    
     func displayAlert(messageTitle: String, messageText: String) {
         stopAudio()
         let alert = UIAlertController(title: messageTitle, message:messageText, preferredStyle: UIAlertControllerStyle.Alert)
@@ -224,11 +223,11 @@ extension QuizViewController {
 // MARK: - QuizViewController: AVSpeechSynthesizerDelegate
 
 extension QuizViewController: AVSpeechSynthesizerDelegate {
-
+    
     func speechSynthesizer(synthesizer: AVSpeechSynthesizer, didCancelSpeechUtterance utterance: AVSpeechUtterance) {
         resetButtonToState(.QuestionDisplayed)
     }
-
+    
     func speechSynthesizer(synthesizer: AVSpeechSynthesizer, didFinishSpeechUtterance utterance: AVSpeechUtterance) {
         resetButtonToState(.QuestionDisplayed)
     }
